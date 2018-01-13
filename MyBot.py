@@ -36,9 +36,12 @@ while True:
     for ship in game_map.get_me().all_ships():
         x_avg += ship.x
         y_avg += ship.y
-        
-    x_avg /= game_map.get_me().all_ships()
-    y_avg /= game_map.get_me().all_ships()
+    
+    x_avg /= len(game_map.get_me().all_ships())
+    y_avg /= len(game_map.get_me().all_ships())
+    
+    logging.info("x-average " + x_avg)
+    logging.info("y-average " + y_avg)
     
     planets_by_distance = sorted(game_map.get_me().all_planets(), key=lambda planet: math.sqrt((planet.x - x_avg)**2 + (planet.y - y_avg)**2) )
         
