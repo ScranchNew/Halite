@@ -29,6 +29,20 @@ while True:
     # Here we define the set of commands to be sent to the Halite engine at the end of the turn
     command_queue = []
     # For every ship that I control
+    
+    x_avg = 0
+    y_avg = 0
+    
+    for ship in game_map.get_me().all_ships():
+        x_avg += ship.x
+        y_avg += ship.y
+        
+    x_avg /= game_map.get_me().all_ships()
+    y_avg /= game_map.get_me().all_ships()
+    
+    planets_by_distance = sorted(game_map.get_me().all_planets(), key=lambda planet: math.sqrt((planet.x - x_avg)**2 + (planet.y - y_avg)**2) )
+        
+    
     for ship in game_map.get_me().all_ships():
         # If the ship is docked
         if ship.docking_status != ship.DockingStatus.UNDOCKED:
@@ -36,7 +50,7 @@ while True:
             continue
 
         # For each planet in the game (only non-destroyed planets are included)
-        for planet in game_map.all_planets():
+        for planet in planets_by_distance:
             # If the planet is owned
             if planet.is_owned() and planet.is_full():
                 # Skip this planet
