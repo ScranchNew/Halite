@@ -17,9 +17,9 @@ import logging
 
 # GAME START
 # Here we define the bot's name as Settler and initialize the game, including communication with the Halite engine.
-game = hlt.Game("Settler")
+game = hlt.Game("Max out planets")
 # Then we print our start message to the logs
-logging.info("Starting my Settler bot!")
+logging.info("Starting my max planets bot!")
 
 while True:
     # TURN START
@@ -38,7 +38,7 @@ while True:
         # For each planet in the game (only non-destroyed planets are included)
         for planet in game_map.all_planets():
             # If the planet is owned
-            if planet.is_owned():
+            if planet.is_owned() and planet.is_full():
                 # Skip this planet
                 continue
 
@@ -58,7 +58,7 @@ while True:
                 navigate_command = ship.navigate(
                     ship.closest_point_to(planet),
                     game_map,
-                    speed=int(hlt.constants.MAX_SPEED/2),
+                    speed=int(hlt.constants.MAX_SPEED*5/7),
                     ignore_ships=True)
                 # If the move is possible, add it to the command_queue (if there are too many obstacles on the way
                 # or we are trapped (or we reached our destination!), navigate_command will return null;
