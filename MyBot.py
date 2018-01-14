@@ -47,7 +47,7 @@ while True:
     enemy_planets = []
     
     for entity in game_map.nearby_entities_by_distance(centre_place):
-        if entity.__class__.__name__ == 'Planet'
+        if entity.is_planet
             if entity.is_owned() == false:
                 empty_planets.append(entity)
                 continue
