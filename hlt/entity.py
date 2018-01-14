@@ -27,7 +27,6 @@ class Entity:
         self.health = health
         self.owner = player
         self.id = entity_id
-        self.is_planet = false
 
     def calculate_distance_between(self, target):
         """
@@ -107,7 +106,6 @@ class Planet(Entity):
         self.owner = owner if bool(int(owned)) else None
         self._docked_ship_ids = docked_ships
         self._docked_ships = {}
-        self.is_planet = true
 
     def get_docked_ship(self, ship_id):
         """
@@ -237,7 +235,6 @@ class Ship(Entity):
         self.planet = planet if (docking_status is not Ship.DockingStatus.UNDOCKED) else None
         self._docking_progress = progress
         self._weapon_cooldown = cooldown
-        self.is_planet = false
 
     def thrust(self, magnitude, angle):
         """
@@ -394,7 +391,6 @@ class Position(Entity):
         self.health = None
         self.owner = None
         self.id = None
-        self.is_planet = false
 
     def _link(self, players, planets):
         raise NotImplementedError("Position should not have link attributes.")
