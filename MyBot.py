@@ -46,18 +46,25 @@ while True:
     empty_planets = []
     enemy_planets = []
     
-    for entity in game_map.nearby_entities_by_distance(centre_place):
-        if entity.is_planet
-            if entity.is_owned() == false:
-                empty_planets.append(entity)
-                continue
-            elif entity.owner == map.get_me():
-                if entity.is_full() == false:
-                    my_planets_not_full.append(entity)
-                my_planets.append(entity)
-                continue
-            else:
-                enemy_planets.append(entity)
+    planet_dict = game_map.nearby_planets_by_distance(centre_place)
+    dist_list = planet_list.keys()
+    dist_list.sort()
+    planet_list = []
+    for dist in dist_list:
+        planet_list.append(planet_dict[dist])
+    
+    for planet in planet_list:
+
+        if planet.is_owned() == false:
+            empty_planets.append(planet)
+            continue
+        elif planet.owner == map.get_me():
+            if planet.is_full() == false:
+                my_planets_not_full.append(planet)
+            my_planets.append(planet)
+            continue
+        else:
+            enemy_planets.append(planet)
         continue
     
     # Find the centre of my empire
