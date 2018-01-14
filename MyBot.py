@@ -103,7 +103,7 @@ while True:
     logging.info("New Centre.x: " + str(centre_place.x))
     logging.info("New Centre.y: " + str(centre_place.y))
     
-    # Find the centre of the enemy
+    '''    # Find the centre of the enemy
     
     centre_enemy.x = 0
     centre_enemy.y = 0
@@ -142,6 +142,8 @@ while True:
     for dist in dist_list:
         ship_list.append(ship_dict.get(dist)[0])
     
+    
+    
     for ship in ship_list:
         if ship.owner == game_map.get_me():
             if ship.docking_status == 'DockingStatus.UNDOCKED':
@@ -152,7 +154,6 @@ while True:
             enemy_ships.append(ship)
         continue
     
-    '''
     # Depending on the distribution I change the gamestate
     
     # Midgame (Gamestate 1) starts when there are less empty than occupied planets
@@ -318,11 +319,12 @@ while True:
                                 if dist_to_tgt < min_dist:
                                     min_dist = dist_to_tgt
                                     closest_ship = ship
-                                target_ship = targets[n].all_docked_ships()[0]
-                                navigate_command = closest_ship.navigate(closest_ship.closest_point_to(target_ship), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=True)
-                                logging.info("Nav command: " + str(navigate_command))
-                                if navigate_command:
-                                    command_queue.append(navigate_command)
+                            active_ships.remove(closest_ship)
+                            target_ship = targets[n].all_docked_ships()[0]
+                            navigate_command = closest_ship.navigate(closest_ship.closest_point_to(target_ship), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=True)
+                            logging.info("Nav command: " + str(navigate_command))
+                            if navigate_command:
+                                command_queue.append(navigate_command)
                         else:
                             break
              
