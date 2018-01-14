@@ -33,9 +33,19 @@ while True:
     game_map = game.update_map()
     
     if first_turn == True:
+        enemies = game_map.all_players()
+        enemies.remove(game_map.get_me())
+        
         centre_place = Position(0,0)
         centre_place.x = game_map.get_me().all_ships()[0].x
         centre_place.y = game_map.get_me().all_ships()[0].y
+        
+        centre_enemy = Position(0,0)
+        for enemy in enemies:
+            centre_enemy.x += enemy.all_ships()[0].x
+            centre_enemy.y += enemy.all_ships()[0].y
+        centre_enemy.x /= len(enemies)
+        centre_enemy.y /= len(enemies)
         first_turn = False
     
     #logging.info("Centre.x: " + str(centre_place.x))
@@ -72,27 +82,86 @@ while True:
     logging.info("Listed the planets")
     
     # Find the centre of my empire
-    '''centre_place.x = 0
+    centre_place.x = 0
     centre_place.y = 0
     
-    for ship in game_map.get_me().all_ships():
-        centre_place.x += ship.x
-        centre_place.y += ship.y
-    
-    centre_place.x /= len(game_map.get_me().all_ships())
-    centre_place.y /= len(game_map.get_me().all_ships())
+    if len(my_planets) > 0:
+        for planet in my_planets:
+            centre_place.x += planet.x
+            centre_place.y += planet.y
+        
+        centre_place.x /= len(my_planets)
+        centre_place.y /= len(my_planets)
+    else:
+        for ship in game_map.get_me().all_ships():
+            centre_place.x += ship.x
+            centre_place.y += ship.y
+        
+        centre_place.x /= len(game_map.get_me().all_ships())
+        centre_place.y /= len(game_map.get_me().all_ships())
         
     logging.info("New Centre.x: " + str(centre_place.x))
-    logging.info("New Centre.y: " + str(centre_place.y))'''
+    logging.info("New Centre.y: " + str(centre_place.y))
     
+    # Find the centre of the enemy
+    
+    centre_enemy.x = 0
+    centre_enemy.y = 0
+    
+    if len(enemy_planets) > 0:
+        for planet in enemy_planets:
+            centre_enemy.x += planet.x
+            centre_enemy.y += planet.y
+        
+        centre_enemy.x /= len(enemy_planets)
+        centre_enemy.y /= len(enemy_planets)
+    else:
+        enemy_ships = game_map._all_ships()
+        for my_ship in game_map.get_me().all_ships():
+            enemy_ships.remove(my_ship)
+        for ship in enemy_ships:
+            centre_place.x += ship.x
+            centre_place.y += ship.y
+        
+        centre_place.x /= len(enemy_ships)
+        centre_place.y /= len(enemy_ships)
+        
+    logging.info("Enemy Centre.x: " + str(centre_enemy.x))
+    logging.info("Enemy Centre.y: " + str(centre_enemy.y))
+    
+    # Now I list and categorize all ships by distance to the enemy
+    
+    
+    my_ships = []
+    my_active_ships = []
+    enemy_ships = []
+    
+    ship_dict = game_map.nearby_ships_by_distance(centre_enemy)
+    dist_list = sorted(ship_dict.keys())
+    ship_list = []
+    for dist in dist_list:
+        ship_list.append(ship_dict.get(dist)[0])
+    
+    for ship in ship_list:
+        if ship.owner == game_map.get_me():
+            if ship.docking_status == 'DockingStatus.UNDOCKED':
+                my_active_ships.append(ship)
+            my_ships.append(ship)
+            continue
+        else:
+            enemy_ships.append(ship)
+        continue
+    
+    '''
     # Depending on the distribution I change the gamestate
     
     # Midgame (Gamestate 1) starts when there are less empty than occupied planets
-    #if (len(my_planets) + len(enemy_planets)) > len(empty_planets):
+    if (len(my_planets) + len(enemy_planets)) > len(empty_planets):
         #game_state = 1
     # Lategame (Gamestate 2) starts when there are no empty planets left
-    #elif (len(empty_planets) == 0):
+    elif (len(empty_planets) == 0):
         #game_state = 2
+    '''
     
     # Rules for early game (state 0)
     if game_state == 0:
@@ -107,13 +176,13 @@ while True:
         logging.info("Listed active ships")
         logging.info("active ships: " + str(active_ships))
         
-        mining_num = int(len(active_ships)*2/3)
+        '''mining_num = int(len(active_ships)*2/3)
         if mining_num < 2:
             mining_num = len(active_ships)
         war_num = len(active_ships) - mining_num
         
         war_ships = active_ships[mining_num:len(active_ships)]
-        active_ships = active_ships[0:mining_num]
+        active_ships = active_ships[0:mining_num]'''
         
         if active:
             closest_ship = active_ships[0]
@@ -229,22 +298,33 @@ while True:
             logging.info("Navigated to empty")
             
             # Navigate ships to enemy planets
-            active_ships = war_ships + active_ships
+            '''active_ships = war_ships + active_ships'''
             
-            if len(enemy_planets) >= 2:
-                target_num = 2
+            if len(enemy_planets) >= 3:
+                target_num = 3
             else:
                 target_num = len(enemy_planets)
             targets = []
             if target_num > 0:
                 targets = enemy_planets
                 logging.info("Enemy Targets" + str(targets))
-                for ship_num in range(len(active_ships)):
-                    target_ship = targets[ship_num % target_num].all_docked_ships()[0]
-                    navigate_command = active_ships[ship_num].navigate(active_ships[ship_num].closest_point_to(target_ship), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=True)
-                    logging.info("Nav command: " + str(navigate_command))
-                    if navigate_command:
-                        command_queue.append(navigate_command)
+                
+                while len(active_ships) > 0:
+                    for n in range(target_num):
+                        min_dist = 10000
+                        if len(active_ships) > 0:
+                            for ship in active_ships:
+                                dist_to_tgt = ship.calculate_distance_between(targets[n])
+                                if dist_to_tgt < min_dist:
+                                    min_dist = dist_to_tgt
+                                    closest_ship = ship
+                                target_ship = targets[n].all_docked_ships()[0]
+                                navigate_command = closest_ship.navigate(closest_ship.closest_point_to(target_ship), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=True)
+                                logging.info("Nav command: " + str(navigate_command))
+                                if navigate_command:
+                                    command_queue.append(navigate_command)
+                        else:
+                            break
              
             logging.info("Navigated to the enemy")
         
