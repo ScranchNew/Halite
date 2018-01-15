@@ -27,6 +27,19 @@ logging.info("Starting my Greedy bot!")
 game_state = 0
 first_turn = True
 
+class game_state_list(Enum):
+        EARLY = 0
+        MID = 1
+        LATE = 2
+
+game_state = EARLY
+
+game_map = game.update_map()
+
+centre_place = Position(0,0)
+centre_place.x = map.get_me().all_ships()[0].x
+centre_place.y = map.get_me().all_ships()[0].y
+
 while True:
     # TURN START
     # Update the map for the new turn and get the latest version
@@ -61,6 +74,7 @@ while True:
     enemy_planets = []
     
     planet_dict = game_map.nearby_planets_by_distance(centre_place)
+
     dist_list = sorted(planet_dict.keys())
     planet_list = []
     for dist in dist_list:
@@ -72,6 +86,7 @@ while True:
             continue
         elif planet.owner == game_map.get_me():
             if planet.is_full() == False:
+
                 my_planets_not_full.append(planet)
             my_planets.append(planet)
             continue
@@ -79,12 +94,13 @@ while True:
             enemy_planets.append(planet)
         continue
     
+
     logging.info("Listed the planets")
     
     # Find the centre of my empire
     centre_place.x = 0
     centre_place.y = 0
-    
+
     if len(my_planets) > 0:
         for planet in my_planets:
             centre_place.x += planet.x
@@ -153,6 +169,7 @@ while True:
         else:
             enemy_ships.append(ship)
         continue
+
     
     # Depending on the distribution I change the gamestate
     
@@ -336,6 +353,7 @@ while True:
     # Rules for the late game (state 2)
     else:
         pass
+
     game.send_command_queue(command_queue)
     logging.info("Command queue: " + str(command_queue))
     
