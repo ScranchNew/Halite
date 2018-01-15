@@ -229,8 +229,8 @@ while True:
                         # We add the command by appending it to the command_queue
                         if docking_allowed:
                             docking_allowed = False
-                        logging.info("Nav command: " + str(closest_ship.dock(target)))
-                        command_queue.append(closest_ship.dock(target))
+                            logging.info("Nav command: " + str(closest_ship.dock(target)))
+                            command_queue.append(closest_ship.dock(target))
                     # Otherwise move towards it
                     else:
                         navigate_command = closest_ship.navigate(closest_ship.closest_point_to(target), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=False)
