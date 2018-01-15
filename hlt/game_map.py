@@ -71,6 +71,32 @@ class Map:
                 continue
             result.setdefault(entity.calculate_distance_between(foreign_entity), []).append(foreign_entity)
         return result
+    
+    def nearby_planets_by_distance(self, entity):
+        """
+        :param entity: The source entity to find distances from
+        :return: Dict containing all planets with their designated distances
+        :rtype: dict
+        """
+        result = {}
+        for foreign_entity in self.all_planets():
+            if entity == foreign_entity:
+                continue
+            result.setdefault(entity.calculate_distance_between(foreign_entity), []).append(foreign_entity)
+        return result
+    
+    def nearby_ships_by_distance(self, entity):
+        """
+        :param entity: The source entity to find distances from
+        :return: Dict containing all planets with their designated distances
+        :rtype: dict
+        """
+        result = {}
+        for foreign_entity in self._all_ships():
+            if entity == foreign_entity:
+                continue
+            result.setdefault(entity.calculate_distance_between(foreign_entity), []).append(foreign_entity)
+        return result
 
     def _link(self):
         """
