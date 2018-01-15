@@ -44,20 +44,12 @@ game = hlt.Game("Greedy")
 logging.info("Starting my Greedy bot!")
 
 first_turn = True
+turn_count = 1
 
 while True:
     # TURN START
     # Update the map for the new turn and get the latest version
     game_map = game.update_map()
-    
-    if first_turn == True:
-        enemies = game_map.all_players()
-        enemies.remove(game_map.get_me())
-        
-        centre_place = Position(0,0)
-        centre_place.x = game_map.get_me().all_ships()[0].x
-        centre_place.y = game_map.get_me().all_ships()[0].y
-        first_turn = False
     
     #logging.info("Centre.x: " + str(centre_place.x))
     #logging.info("Centre.y: " + str(centre_place.y))
@@ -72,12 +64,8 @@ while True:
     my_planets_not_full = []
     enemy_planets = []
     
-    planet_dict = game_map.nearby_planets_by_distance(centre_place)
-    dist_list = sorted(planet_dict.keys())
-    planet_list = []
-    for dist in dist_list:
-        planet_list.append(planet_dict.get(dist)[0])
     
+    planet_list = game_map.all_planets()
     for planet in planet_list:
         if planet.is_owned() == False:
             empty_planets.append(planet)
@@ -101,11 +89,11 @@ while True:
     
     if len(my_planets) > 0:
         for planet in my_planets:
-            centre_place.x += 2 * planet.x
-            centre_place.y += 2 * planet.y
+            centre_place.x += 5 * planet.x
+            centre_place.y += 5 * planet.y
         
-        centre_place.x /= 2 * len(my_planets) + len(game_map.get_me().all_ships())
-        centre_place.y /= 2 * len(my_planets) + len(game_map.get_me().all_ships())
+        centre_place.x /= 5 * len(my_planets) + len(game_map.get_me().all_ships())
+        centre_place.y /= 5 * len(my_planets) + len(game_map.get_me().all_ships())
     else:
         centre_place.x /= len(game_map.get_me().all_ships())
         centre_place.y /= len(game_map.get_me().all_ships())
@@ -139,15 +127,13 @@ while True:
                 if entity[0].owner == game_map.get_me(): #Not my ships
                     continue
                 elif entity[0].docking_status == 'DockingStatus.UNDOCKED':    #But enemy ships that are not docked
-                    active_ship_num -= 2
-                    target_list.append([entity[0], 2, "Enemy ship"])
+                    active_ship_num -= 1
+                    target_list.append([entity[0], 1, "Enemy ship"])
                     continue
                 else:
                     continue
             elif str(entity[0])[:13] == "Entity Planet":
                 if entity[0].is_owned():
-                    logging.info("entity[0].owner: " + str(entity[0].owner))
-                    logging.info("game_map.get_me(): " + str(game_map.get_me()))
                     if entity[0].owner == game_map.get_me():
                         if entity[0].is_full():       #Not my full planets
                             continue
@@ -156,8 +142,8 @@ while True:
                             target_list.append([entity[0], entity[0].num_docking_spots - len(entity[0].all_docked_ships()), "Planet"])
                             continue
                     else:                             #Also enemy planets
-                        active_ship_num -= 3 * len(entity[0].all_docked_ships())
-                        target_list.append([entity[0], 3 * len(entity[0].all_docked_ships()), "Enemy planet"])
+                        active_ship_num -= 1 * len(entity[0].all_docked_ships())
+                        target_list.append([entity[0], 1 * len(entity[0].all_docked_ships()), "Enemy planet"])
                         continue
                 else:                                 #And empty ones
                     active_ship_num -= entity[0].num_docking_spots
@@ -166,10 +152,12 @@ while True:
             else:
                 continue
     
+    target_list.reverse()
+    
     logging.info("target_list:" + str(target_list))
     
     if len(target_list) > 0:
-        target = target_list.pop()                        #The last target only gets limited ships
+        target = target_list.pop(0)                        #The last target only gets limited ships
         docking_allowed = True
         for ship_num in range(target[1] + active_ship_num):
             ship = closest_entity(target[0], active_ships)
@@ -189,23 +177,24 @@ while True:
                         continue
             elif target[2] == "Enemy ship":
                 #Just fly towards enemy ships
-                navigate_command = ship.navigate(ship.closest_point_to(target[0]), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=True)
+                navigate_command = ship.navigate(ship.closest_point_to(target[0]), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=False)
                 if navigate_command:
                     command_queue.append(navigate_command)
                 continue
             elif target[2] == "Enemy planet":
                 #For planets fly to the closest base
                 target_ship = closest_entity(ship, target[0].all_docked_ships())
-                navigate_command = ship.navigate(ship.closest_point_to(target_ship), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=True)
+                navigate_command = ship.navigate(ship.closest_point_to(target_ship), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=False)
                 if navigate_command:
                     command_queue.append(navigate_command)
                 continue
             else:
                 continue
-                    
+        
         for target in target_list:
             for ship_num in range(target[1]):
                 ship = closest_entity(target[0], active_ships)
+                logging.info("ship: " + str(ship))
                 active_ships.remove(ship)
                 if target[2] == "Planet":
                     #If I can dock, I'll try to
@@ -221,14 +210,14 @@ while True:
                             continue
                 elif target[2] == "Enemy ship":
                     #Just fly towards enemy ships
-                    navigate_command = ship.navigate(ship.closest_point_to(target[0]), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=True)
+                    navigate_command = ship.navigate(ship.closest_point_to(target[0]), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=False)
                     if navigate_command:
                         command_queue.append(navigate_command)
                     continue
                 elif target[2] == "Enemy planet":
                     #For planets fly to the closest base
                     target_ship = closest_entity(ship, target[0].all_docked_ships())
-                    navigate_command = ship.navigate(ship.closest_point_to(target_ship), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=True)
+                    navigate_command = ship.navigate(ship.closest_point_to(target_ship), game_map, max_corrections=180, angular_step=5, speed=int(hlt.constants.MAX_SPEED), ignore_ships=False)
                     if navigate_command:
                         command_queue.append(navigate_command)
                     continue
@@ -238,6 +227,8 @@ while True:
     game.send_command_queue(command_queue)
     
     logging.info("Command queue" + str(command_queue))
+    logging.info("Turn: " + str(turn_count))
+    turn_count += 1
     logging.info(" ")
     
     # TURN END
